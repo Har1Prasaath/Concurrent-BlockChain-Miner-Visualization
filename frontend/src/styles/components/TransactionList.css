@@ -1,0 +1,79 @@
+.transaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .transaction-item {
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.2s;
+  }
+  
+  .transaction-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px var(--shadow-color);
+  }
+  
+  .transaction-header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+  
+  .transaction-id {
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--primary-color);
+    font-weight: 500;
+  }
+  
+  .transaction-time {
+    color: #6c757d;
+  }
+  
+  .transaction-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .transaction-addresses {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .transaction-from, .transaction-to {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .transaction-arrow {
+    color: #6c757d;
+    font-size: 1.2rem;
+  }
+  
+  .transaction-amount {
+    background-color: rgba(52, 168, 83, 0.15);
+    color: var(--secondary-color);
+    padding: 5px 10px;
+    border-radius: 16px;
+    font-weight: 500;
+  }
+  
+  .amount-currency {
+    font-size: 0.8rem;
+    margin-left: 5px;
+  }
+  
+  .no-transactions {
+    padding: 20px;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+  }

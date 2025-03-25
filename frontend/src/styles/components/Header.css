@@ -1,0 +1,111 @@
+.app-header {
+    background-color: #fff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 15px 20px;
+    box-shadow: 0 2px 5px var(--shadow-color);
+  }
+  
+  .header-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .header-title h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--primary-color);
+  }
+  
+  .blockchain-status {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  
+  .blockchain-status::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+  }
+  
+  .blockchain-status.valid {
+    background-color: rgba(52, 168, 83, 0.15);
+    color: var(--secondary-color);
+  }
+  
+  .blockchain-status.valid::before {
+    background-color: var(--secondary-color);
+  }
+  
+  .blockchain-status.invalid {
+    background-color: rgba(234, 67, 53, 0.15);
+    color: var(--danger-color);
+  }
+  
+  .blockchain-status.invalid::before {
+    background-color: var(--danger-color);
+  }
+  
+  .blockchain-info {
+    display: flex;
+    margin-top: 10px;
+    gap: 20px;
+  }
+  
+  .info-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .info-label {
+    font-weight: 500;
+    margin-right: 5px;
+    color: #6c757d;
+  }
+  
+  .info-value {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  
+  .info-value.hash {
+    color: var(--primary-color);
+  }
+  
+  .header-nav {
+    margin-top: 15px;
+  }
+  
+  .header-nav ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .header-nav li {
+    padding: 10px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  
+  .header-nav li:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .header-nav li.active {
+    border-bottom-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 500;
+  }

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basic Blockchain Viewer</title>
+</head>
+<body>
+    <h1>Blockchain Viewer</h1>
+    <button onclick="fetchBlockchain()">Load Blockchain</button>
+    <button onclick="mineBlock()">Mine Block</button>
+    <pre id="output"></pre>
+
+    <script>
+        async function fetchBlockchain() {
+            try {
+                const response = await fetch('http://localhost:8080/chain');
+                const data = await response.json();
+                document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('output').textContent = 'Error fetching blockchain: ' + error;
+            }
+        }
+
+        async function mineBlock() {
+            try {
+                const response = await fetch('http://localhost:8080/mine');
+                const data = await response.json();
+                alert('Block mined!');
+                fetchBlockchain();
+            } catch (error) {
+                document.getElementById('output').textContent = 'Error mining block: ' + error;
+            }
+        }
+    </script>
+</body>
+</html>

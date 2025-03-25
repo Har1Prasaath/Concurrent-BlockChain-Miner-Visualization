@@ -1,0 +1,121 @@
+.blockchain-display {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+    padding: 20px;
+    overflow: hidden;
+  }
+  
+  .blockchain-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .blockchain-header h2 {
+    margin: 0;
+    color: var(--dark-color);
+  }
+  
+  .refresh-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .refresh-button:hover {
+    background-color: #3367d6;
+  }
+  
+  .blockchain-visualization {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 30px;
+    position: relative;
+  }
+  
+  .block-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  
+  .block-connector {
+    position: absolute;
+    top: -15px;
+    width: 2px;
+    height: 15px;
+    background-color: var(--primary-color);
+  }
+  
+  .block-card {
+    width: 100%;
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  
+  .block-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px var(--shadow-color);
+  }
+  
+  .block-card.selected {
+    border-color: var(--primary-color);
+    background-color: #f0f7ff;
+  }
+  
+  .block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .block-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+  }
+  
+  .block-timestamp {
+    font-size: 0.8rem;
+    color: #6c757d;
+  }
+  
+  .block-hash, .block-transactions {
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .label {
+    font-weight: 500;
+    width: 100px;
+    color: #6c757d;
+  }
+  
+  .value {
+    font-family: 'Courier New', Courier, monospace;
+  }
+  
+  /* Block details animation */
+  @keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .block-details {
+    animation: slideIn 0.3s ease-out;
+  }
