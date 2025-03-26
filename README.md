@@ -65,6 +65,9 @@ yarn install
 npm start
 # or
 yarn start
+
+#If the above doesn't work use this command before starting the development server
+$env:NODE_OPTIONS="--openssl-legacy-provider"
 ```
 
 ## Usage
