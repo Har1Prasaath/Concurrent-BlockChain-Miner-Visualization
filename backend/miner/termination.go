@@ -87,12 +87,12 @@ func (st *SpanningTree) MarkNodeTerminated(nodeID int) {
         node.mutex.Lock()
         node.Active = false
         node.mutex.Unlock()
-        fmt.Printf("➤ Node %d marked inactive\n", node.ID)
     }
 }
 
 // DetectTermination initiates termination detection algorithm
 func (st *SpanningTree) DetectTermination() bool {
+	fmt.Println("")
     fmt.Println("➤ Starting termination detection...")
     
     // Initialize all nodes to white
@@ -102,8 +102,10 @@ func (st *SpanningTree) DetectTermination() bool {
     terminated := st.sendToken(st.Root)
     
     if terminated {
+		fmt.Println("")
         fmt.Println("➤ Termination detection completed: All processes have terminated")
     } else {
+		fmt.Println("")
         fmt.Println("➤ Termination detection completed: Some processes still active")
     }
     

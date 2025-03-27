@@ -2,8 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"net/http"
 	"fmt"
+	"net/http"
 
 	"blockchain-visualizer/blockchain"
 	"blockchain-visualizer/miner"
@@ -65,39 +65,40 @@ func MineBlockHandler(bc *blockchain.Blockchain) http.HandlerFunc {
 }
 
 func MineBlockHandlerWithConcurrency(bc *blockchain.Blockchain, numMiners int) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        fmt.Println("Starting concurrent mining with spanning tree termination...")
-        
-        // Get pending transactions
-        pendingTransactions := bc.GetPendingTransactions()
-        
-        // Add reward transaction
-        rewardTx := blockchain.NewTransaction("system", "miner", 1.0)
-        allTransactions := append(pendingTransactions, rewardTx)
-        
-        // Start concurrent mining with spanning tree termination detection
-        newBlock := miner.StartMining(bc, allTransactions, 4, numMiners)
-        
-        if newBlock == nil {
-            http.Error(w, "Mining timed out or failed", http.StatusInternalServerError)
-            return
-        }
-        
-        // Add the mined block to the blockchain
-        bc.AddMinedBlock(newBlock)
-        
-        // Clear the pending transactions
-        bc.ClearPendingTransactions()
-        
-        fmt.Println("Mining complete. Block added to blockchain.")
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("")
+		fmt.Println("Starting concurrent mining with spanning tree termination...")
 
-        w.Header().Set("Content-Type", "application/json")
-        json.NewEncoder(w).Encode(BlockResponse{
-            Message:    "New block mined with spanning tree termination",
-            BlockIndex: newBlock.Index,
-            Block:      newBlock,
-        })
-    }
+		// Get pending transactions
+		pendingTransactions := bc.GetPendingTransactions()
+
+		// Add reward transaction
+		rewardTx := blockchain.NewTransaction("system", "miner", 1.0)
+		allTransactions := append(pendingTransactions, rewardTx)
+
+		// Start concurrent mining with spanning tree termination detection
+		newBlock := miner.StartMining(bc, allTransactions, 4, numMiners)
+
+		if newBlock == nil {
+			http.Error(w, "Mining timed out or failed", http.StatusInternalServerError)
+			return
+		}
+
+		// Add the mined block to the blockchain
+		bc.AddMinedBlock(newBlock)
+
+		// Clear the pending transactions
+		bc.ClearPendingTransactions()
+
+		fmt.Println("Mining complete. Block added to blockchain.")
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(BlockResponse{
+			Message:    "New block mined with spanning tree termination",
+			BlockIndex: newBlock.Index,
+			Block:      newBlock,
+		})
+	}
 }
 
 func GetBlockchainHandler(bc *blockchain.Blockchain) http.HandlerFunc {
