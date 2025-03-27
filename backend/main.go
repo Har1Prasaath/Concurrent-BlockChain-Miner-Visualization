@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime"
 
 	"blockchain-visualizer/api"
 	"blockchain-visualizer/blockchain"
@@ -19,8 +20,12 @@ func main() {
 	// Set up the router
 	router := mux.NewRouter()
 
-	// Define API routes
-	api.SetupRoutes(router, blockchain)
+	// Set the number of miners based on available CPU cores
+	numMiners := runtime.NumCPU()
+	fmt.Printf("Using %d miners for concurrent mining with spanning tree termination\n", numMiners)
+
+	// Define API routes with mining options
+	api.SetupRoutesWithMining(router, blockchain, numMiners)
 
 	// CORS configuration
 	corsOptions := cors.Options{

@@ -90,3 +90,31 @@ func (bc *Blockchain) IsValid() bool {
 	}
 	return true
 }
+
+// GetPendingTransactions returns a copy of the pending transactions
+func (bc *Blockchain) GetPendingTransactions() []Transaction {
+	bc.mutex.RLock()
+	defer bc.mutex.RUnlock()
+
+	// Create a copy to avoid race conditions
+	transactions := make([]Transaction, len(bc.PendingTransactions))
+	copy(transactions, bc.PendingTransactions)
+
+	return transactions
+}
+
+// AddMinedBlock adds a pre-mined block to the blockchain
+func (bc *Blockchain) AddMinedBlock(block *Block) {
+	bc.mutex.Lock()
+	defer bc.mutex.Unlock()
+
+	bc.Blocks = append(bc.Blocks, block)
+}
+
+// ClearPendingTransactions clears all pending transactions
+func (bc *Blockchain) ClearPendingTransactions() {
+	bc.mutex.Lock()
+	defer bc.mutex.Unlock()
+
+	bc.PendingTransactions = []Transaction{}
+}
