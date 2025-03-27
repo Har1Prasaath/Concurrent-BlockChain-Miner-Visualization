@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useBlockchain } from '../context/BlockchainContext';
 import '../styles/components/Header.css';
 
-function Header() {
+function Header({ activeTab, setActiveTab }) {
   const { blockchain, isValid } = useBlockchain();
-  const [activeTab, setActiveTab] = useState('blockchain');
   
   return (
     <header className="app-header">
