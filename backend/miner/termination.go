@@ -1,31 +1,17 @@
 package miner
 
 import (
+    "fmt"
     "sync"
-    "sync/atomic"
 )
 
-// GlobalTermination provides a fast way to signal termination to all miners
-type GlobalTermination struct {
-    terminated int32 // Using atomic operations for thread safety
-}
+// Color represents token color in the termination algorithm
+type Color int
 
-// NewGlobalTermination creates a new termination controller
-func NewGlobalTermination() *GlobalTermination {
-    return &GlobalTermination{
-        terminated: 0,
-    }
-}
-
-// Terminate signals termination to all miners
-func (gt *GlobalTermination) Terminate() {
-    atomic.StoreInt32(&gt.terminated, 1)
-}
-
-// IsTerminated checks if mining should be terminated
-func (gt *GlobalTermination) IsTerminated() bool {
-    return atomic.LoadInt32(&gt.terminated) == 1
-}
+const (
+    White Color = iota
+    Black
+)
 
 // Node represents a node in the spanning tree
 type Node struct {
@@ -33,31 +19,30 @@ type Node struct {
     Parent   *Node
     Children []*Node
     Active   bool
+    Color    Color
     mutex    sync.Mutex
 }
 
 // SpanningTree represents a spanning tree for termination detection
 type SpanningTree struct {
-    Root         *Node
-    NodeCount    int
-    mutex        sync.RWMutex
-    termination  *GlobalTermination
-    terminationChan chan struct{}
+    Root      *Node
+    NodeCount int
 }
 
 // NewSpanningTree creates a new spanning tree with n nodes
 func NewSpanningTree(n int) *SpanningTree {
+    fmt.Println("➤ Created spanning tree with", n, "nodes")
+
     root := &Node{
         ID:       0,
         Active:   true,
+        Color:    White,
         Children: make([]*Node, 0),
     }
 
     st := &SpanningTree{
-        Root:         root,
-        NodeCount:    n,
-        termination:  NewGlobalTermination(),
-        terminationChan: make(chan struct{}),
+        Root:      root,
+        NodeCount: n,
     }
 
     // Create the remaining nodes and build the tree
@@ -70,6 +55,7 @@ func NewSpanningTree(n int) *SpanningTree {
             ID:       i,
             Parent:   parent,
             Active:   true,
+            Color:    White,
             Children: make([]*Node, 0),
         }
         parent.Children = append(parent.Children, node)
@@ -79,26 +65,13 @@ func NewSpanningTree(n int) *SpanningTree {
     return st
 }
 
-// TerminateNode marks a node as inactive and signals global termination
-func (st *SpanningTree) TerminateNode(nodeID int) {
-    st.mutex.Lock()
-    defer st.mutex.Unlock()
-
-    // Signal global termination immediately
-    st.termination.Terminate()
-    
-    // Also close the termination channel to wake up any waiting goroutines
-    select {
-    case <-st.terminationChan: // Already closed
-    default:
-        close(st.terminationChan)
-    }
-
+// MarkNodeTerminated marks a node as terminated (inactive)
+func (st *SpanningTree) MarkNodeTerminated(nodeID int) {
     // Find the node with the given ID
     queue := []*Node{st.Root}
     var node *Node
 
-    for len(queue) > 0 && node == nil {
+    for len(queue) > 0 {
         current := queue[0]
         queue = queue[1:]
 
@@ -111,53 +84,124 @@ func (st *SpanningTree) TerminateNode(nodeID int) {
     }
 
     if node != nil {
-        // Mark the node as inactive
         node.mutex.Lock()
         node.Active = false
         node.mutex.Unlock()
-        
-        // Propagate termination upward
-        st.propagateTermination(node)
+        fmt.Printf("➤ Node %d marked inactive\n", node.ID)
     }
 }
 
-// propagateTermination propagates termination up the tree
-func (st *SpanningTree) propagateTermination(node *Node) {
-    // If this is the root, we're done
-    if node.Parent == nil {
-        return
-    }
-
-    // Check if all siblings are inactive
-    allSiblingsInactive := true
+// DetectTermination initiates termination detection algorithm
+func (st *SpanningTree) DetectTermination() bool {
+    fmt.Println("➤ Starting termination detection...")
     
-    for _, child := range node.Parent.Children {
-        child.mutex.Lock()
-        active := child.Active
-        child.mutex.Unlock()
+    // Initialize all nodes to white
+    st.initializeColors(st.Root)
+    
+    // Send white token down the tree
+    terminated := st.sendToken(st.Root)
+    
+    if terminated {
+        fmt.Println("➤ Termination detection completed: All processes have terminated")
+    } else {
+        fmt.Println("➤ Termination detection completed: Some processes still active")
+    }
+    
+    return terminated
+}
+
+// initializeColors sets all nodes to white
+func (st *SpanningTree) initializeColors(node *Node) {
+    node.mutex.Lock()
+    node.Color = White
+    node.mutex.Unlock()
+    
+    for _, child := range node.Children {
+        st.initializeColors(child)
+    }
+}
+
+// sendToken sends a token through the tree
+// Returns true if termination is detected, false otherwise
+func (st *SpanningTree) sendToken(node *Node) bool {
+    // First check if current node is active
+    node.mutex.Lock()
+    active := node.Active
+    node.mutex.Unlock()
+    
+    if active {
+        fmt.Printf("➤ Node %d is still active, termination not complete\n", node.ID)
+        return false
+    }
+    
+    fmt.Printf("➤ Sending token to node %d\n", node.ID)
+    
+    // Token color remains white unless a black node is found
+    tokenColor := White
+    
+    // Send token to children
+    for _, child := range node.Children {
+        childTerminated := st.sendToken(child)
         
-        if active {
-            allSiblingsInactive = false
-            break
+        if !childTerminated {
+            return false // If any subtree is not terminated, return false immediately
         }
+        
+        // Check child's color
+        child.mutex.Lock()
+        if child.Color == Black {
+            tokenColor = Black // Token becomes black if any child is black
+        }
+        child.mutex.Unlock()
     }
     
-    // If all siblings are inactive, mark parent as inactive and continue up
-    if allSiblingsInactive {
-        node.Parent.mutex.Lock()
-        node.Parent.Active = false
-        node.Parent.mutex.Unlock()
-        
-        st.propagateTermination(node.Parent)
+    // Update node's color based on token
+    node.mutex.Lock()
+    prevColor := node.Color
+    node.Color = tokenColor
+    node.mutex.Unlock()
+    
+    fmt.Printf("➤ Node %d processed token: was %v, now %v\n", 
+        node.ID, colorToString(prevColor), colorToString(tokenColor))
+    
+    // If this is the root and token is white, termination is detected
+    if node.Parent == nil && tokenColor == White {
+        return true
     }
+    
+    return true
 }
 
-// IsTerminated provides quick access to check if mining should terminate
-func (st *SpanningTree) IsTerminated() bool {
-    return st.termination.IsTerminated()
+// Helper function to convert color to string
+func colorToString(c Color) string {
+    if c == White {
+        return "White"
+    }
+    return "Black"
 }
 
-// GetTerminationChannel returns a channel that is closed when termination occurs
-func (st *SpanningTree) GetTerminationChannel() <-chan struct{} {
-    return st.terminationChan
+// PrintTreeStatus prints the current status of all nodes in the tree
+func (st *SpanningTree) PrintTreeStatus() {
+    fmt.Println("➤ Current tree status:")
+    st.printNodeStatus(st.Root, 0)
+}
+
+// printNodeStatus prints the status of a node and its children
+func (st *SpanningTree) printNodeStatus(node *Node, level int) {
+    indent := ""
+    for i := 0; i < level; i++ {
+        indent += "  "
+    }
+    
+    node.mutex.Lock()
+    active := node.Active
+    color := node.Color
+    node.mutex.Unlock()
+    
+    fmt.Printf("%sNode %d - Active: %t, Color: %s\n", 
+        indent, node.ID, active, colorToString(color))
+    
+    for _, child := range node.Children {
+        st.printNodeStatus(child, level+1)
+    }
 }
