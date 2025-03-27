@@ -1,31 +1,77 @@
 package blockchain
 
+import (
+	"sync"
+)
+
 type Blockchain struct {
-	Blocks []*Block
+	Blocks              []*Block
+	PendingTransactions []Transaction
+	mutex               sync.RWMutex // Add mutex for thread safety
 }
 
 func NewBlockchain() *Blockchain {
 	genesisBlock := NewBlock(0, "", []Transaction{})
 	bc := &Blockchain{
-		Blocks: []*Block{genesisBlock},
+		Blocks:              []*Block{genesisBlock},
+		PendingTransactions: []Transaction{},
 	}
 	return bc
 }
 
+func (bc *Blockchain) AddTransaction(tx Transaction) {
+	bc.mutex.Lock()         // Lock before modifying transactions
+	defer bc.mutex.Unlock() // Ensure unlock happens
+
+	bc.PendingTransactions = append(bc.PendingTransactions, tx)
+}
+
 func (bc *Blockchain) AddBlock(transactions []Transaction) *Block {
+	bc.mutex.Lock()
+	defer bc.mutex.Unlock()
+
 	prevBlock := bc.Blocks[len(bc.Blocks)-1]
 	newBlock := NewBlock(prevBlock.Index+1, prevBlock.Hash, transactions)
 	bc.Blocks = append(bc.Blocks, newBlock)
 	return newBlock
 }
 
-// GetLatestBlock returns the most recently added block
+func (bc *Blockchain) MinePendingTransactions(minerReward string) *Block {
+	bc.mutex.Lock()
+
+	// If we don't have any pending transactions, add just the reward transaction
+	var pendingTransactionsCopy []Transaction
+	if len(bc.PendingTransactions) == 0 {
+		// Create empty slice but don't clear anything since there's nothing to clear
+		pendingTransactionsCopy = []Transaction{}
+	} else {
+		// Copy pending transactions
+		pendingTransactionsCopy = make([]Transaction, len(bc.PendingTransactions))
+		copy(pendingTransactionsCopy, bc.PendingTransactions)
+		// Clear pending transactions only after copying them
+		bc.PendingTransactions = []Transaction{}
+	}
+	bc.mutex.Unlock()
+
+	// Create the reward transaction
+	rewardTx := NewTransaction("system", minerReward, 1.0)
+	allTransactions := append(pendingTransactionsCopy, rewardTx)
+
+	// Add the new block with all transactions
+	return bc.AddBlock(allTransactions)
+}
+
 func (bc *Blockchain) GetLatestBlock() *Block {
+	bc.mutex.RLock() // Use read lock for reading only
+	defer bc.mutex.RUnlock()
+
 	return bc.Blocks[len(bc.Blocks)-1]
 }
 
-// IsValid checks if the blockchain is valid
 func (bc *Blockchain) IsValid() bool {
+	bc.mutex.RLock()
+	defer bc.mutex.RUnlock()
+
 	for i := 1; i < len(bc.Blocks); i++ {
 		currentBlock := bc.Blocks[i]
 		previousBlock := bc.Blocks[i-1]

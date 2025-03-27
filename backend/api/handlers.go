@@ -38,14 +38,11 @@ func CreateTransactionHandler(bc *blockchain.Blockchain) http.HandlerFunc {
 		}
 
 		transaction := blockchain.NewTransaction(req.Sender, req.Recipient, req.Amount)
-
-		// Add to pending transactions (usually would be stored then mined)
-		newBlock := bc.AddBlock([]blockchain.Transaction{transaction})
+		bc.AddTransaction(transaction) // Add to pending pool instead of creating a block
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(TransactionResponse{
-			Message: "Transaction added successfully",
-			Block:   newBlock,
+			Message: "Transaction added to pending transactions",
 		})
 	}
 }
@@ -54,12 +51,11 @@ func MineBlockHandler(bc *blockchain.Blockchain) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// In a real implementation, this would mine pending transactions
 		// For this example, we'll just create a new block with a dummy transaction
-		dummyTx := blockchain.NewTransaction("system", "miner", 1.0)
-		newBlock := bc.AddBlock([]blockchain.Transaction{dummyTx})
+		newBlock := bc.MinePendingTransactions("miner") // Mine all pending transactions
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(BlockResponse{
-			Message:    "New block mined",
+			Message:    "New block mined with all pending transactions",
 			BlockIndex: newBlock.Index,
 			Block:      newBlock,
 		})
