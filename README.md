@@ -1,4 +1,4 @@
-# Blockchain Visualizer
+# Concurrent Blockchain Miner
 
 This project is an interactive blockchain visualization application implemented with Go for the backend and React for the frontend. It allows users to explore the blockchain, create transactions, mine new blocks, and validate the integrity of the blockchain - all with a modern, user-friendly interface.
 
